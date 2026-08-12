@@ -1,215 +1,67 @@
--- ====================================================================
--- PIZZA SALES DATA ANALYTICS PROJECT (MYSQL SCRIPT)
--- ====================================================================
+# 🍕 Pizza Sales Performance Analytics
 
--- CREATE DATABASE
-CREATE DATABASE IF NOT EXISTS pizza_db;
-USE pizza_db;
+An end-to-end data analytics project transforming raw retail transactional records into structured business intelligence. This project leverages **MySQL** for comprehensive data extraction, transformation, and structural modeling, serving as the foundational pipeline for an interactive performance dashboard.
 
--- --------------------------------------------------------------------
--- BASIC QUESTIONS
--- --------------------------------------------------------------------
+---
 
--- 1. Retrieve the total number of orders placed.
-SELECT 
-    COUNT(order_id) AS total_orders 
-FROM 
-    orders;
+## 📊 Business Metrics & Objectives
 
+The primary goal is to isolate operational bottlenecks and financial drivers to optimize retail efficiency. The analytical framework is divided into three progressive strategic layers:
 
--- 2. Calculate the total revenue generated from pizza sales.
-SELECT 
-    ROUND(SUM(order_details.quantity * pizzas.price), 2) AS total_revenue
-FROM 
-    order_details
-JOIN 
-    pizzas ON order_details.pizza_id = pizzas.pizza_id;
+### 1. Basic Operations (Baseline KPI Tracking)
+* **Order Volume:** Monitored total raw traffic count across the operational timeline.
+* **Financial Benchmarks:** Aggregated absolute gross revenue baseline figures.
+* **Pricing & Sizing Architecture:** Discovered inventory price ceilings and isolated the high-volume consumer demand curve by size.
+* **Product Volume:** Ranked top 5 products by unit velocity to assist warehouse fulfillment planning.
 
+### 2. Intermediate Operations (Trend & Pattern Diagnostics)
+* **Category Share:** Evaluated unit volume distribution across menu macro-segments.
+* **Hourly Demand Curves:** Mapped transaction distribution by hour blocks to optimize staff allocation and kitchen scheduling.
+* **Menu Footprint:** Analyzed unique product variations per category to assess inventory bloat.
+* **Daily Averages:** Formulated expected baseline quotas for daily production output planning.
+* **Core Revenue Drivers:** Traced top 3 macro-revenue items to validate profitability segments.
 
--- 3. Identify the highest-priced pizza.
-SELECT 
-    pizza_types.name, 
-    pizzas.price
-FROM 
-    pizza_types
-JOIN 
-    pizzas ON pizza_types.pizza_type_id = pizzas.pizza_type_id
-ORDER BY 
-    pizzas.price DESC
-LIMIT 1;
+### 3. Advanced Strategy (Value Engineering & Predictive Signals)
+* **Revenue Contribution Dynamics:** Structured localized calculations determining exact financial weight by menu type.
+* **Financial Velocity Map:** Engineered cumulative window aggregates to visualize real-time growth trajectories.
+* **Categorical Performance Matrices:** Built partitioned ranking layers using Common Table Expressions (CTEs) to find the top 3 revenue engines within every localized menu section.
 
+---
 
--- 4. Identify the most common pizza size ordered.
-SELECT 
-    pizzas.size, 
-    COUNT(order_details.order_details_id) AS order_count
-FROM 
-    order_details
-JOIN 
-    pizzas ON order_details.pizza_id = pizzas.pizza_id
-GROUP BY 
-    pizzas.size
-ORDER BY 
-    order_count DESC
-LIMIT 1;
+## 📁 Repository Architecture & Setup
 
+```text
+├── database/
+│   ├── pizza_db_schema.sql      # Database layout definitions
+│   └── sales_data_import/       # Raw transactional CSV storage
+├── queries/
+│   └── analytical_framework.sql # Production-ready MySQL execution script
+└── README.md                    # Project documentation
+```
 
--- 5. List the top 5 most ordered pizza types along with their quantities.
-SELECT 
-    pizza_types.name, 
-    SUM(order_details.quantity) AS total_quantity
-FROM 
-    pizza_types
-JOIN 
-    pizzas ON pizza_types.pizza_type_id = pizzas.pizza_type_id
-JOIN 
-    order_details ON order_details.pizza_id = pizzas.pizza_id
-GROUP BY 
-    pizza_types.name
-ORDER BY 
-    total_quantity DESC
-LIMIT 5;
+### Database Initialization Flow
+1. Instantiate your relational workspace platform and spin up the database engine:
+   ```sql
+   CREATE DATABASE pizza_db;
+   USE pizza_db;
+   ```
+2. Map your relational schemas across the four primary target architectures: `orders`, `order_details`, `pizzas`, and `pizza_types`.
+3. Ingest the clean CSV raw datasets via the import wizard or bulk load query prompts.
+4. Execute `analytical_framework.sql` to generate performance aggregates.
 
+---
 
--- --------------------------------------------------------------------
--- INTERMEDIATE QUESTIONS
--- --------------------------------------------------------------------
+## 🛠️ Technology Stack & Architecture
 
--- 1. Join the necessary tables to find the total quantity of each pizza category ordered.
-SELECT 
-    pizza_types.category, 
-    SUM(order_details.quantity) AS total_quantity
-FROM 
-    pizza_types
-JOIN 
-    pizzas ON pizza_types.pizza_type_id = pizzas.pizza_type_id
-JOIN 
-    order_details ON order_details.pizza_id = pizzas.pizza_id
-GROUP BY 
-    pizza_types.category
-ORDER BY 
-    total_quantity DESC;
+* **Database Engine:** MySQL Server (Relational Structured Queries)
+* **Analytical Frameworks:** Advanced Windows Functions, CTE Partitioning, Multi-Table Joining, Aggregate Groupings.
+* **Downstream Visualization Target:** Power BI Desktop (Connected via native database drivers for real-time model extraction).
 
+---
 
--- 2. Determine the distribution of orders by hour of the day.
-SELECT 
-    HOUR(order_time) AS order_hour, 
-    COUNT(order_id) AS total_orders
-FROM 
-    orders
-GROUP BY 
-    HOUR(order_time)
-ORDER BY 
-    order_hour;
+## ⏭️ Roadmap: Power BI Integration
 
-
--- 3. Join relevant tables to find the category-wise distribution of pizzas.
-SELECT 
-    category, 
-    COUNT(name) AS total_pizza_types
-FROM 
-    pizza_types
-GROUP BY 
-    category;
-
-
--- 4. Group the orders by date and calculate the average number of pizzas ordered per day.
-SELECT 
-    ROUND(AVG(total_pizzas_per_day), 0) AS avg_pizzas_ordered_per_day
-FROM (
-    SELECT 
-        orders.order_date, 
-        SUM(order_details.quantity) AS total_pizzas_per_day
-    FROM 
-        orders
-    JOIN 
-        order_details ON orders.order_id = order_details.order_id
-    GROUP BY 
-        orders.order_date
-) AS daily_sales_summary;
-
-
--- 5. Determine the top 3 most ordered pizza types based on revenue.
-SELECT 
-    pizza_types.name, 
-    ROUND(SUM(order_details.quantity * pizzas.price), 2) AS total_revenue
-FROM 
-    pizza_types
-JOIN 
-    pizzas ON pizza_types.pizza_type_id = pizzas.pizza_type_id
-JOIN 
-    order_details ON order_details.pizza_id = pizzas.pizza_id
-GROUP BY 
-    pizza_types.name
-ORDER BY 
-    total_revenue DESC
-LIMIT 3;
-
-
--- --------------------------------------------------------------------
--- ADVANCED QUESTIONS
--- --------------------------------------------------------------------
-
--- 1. Calculate the percentage contribution of each pizza type to total revenue.
-SELECT 
-    pizza_types.category,
-    ROUND((SUM(order_details.quantity * pizzas.price) / 
-          (SELECT SUM(order_details.quantity * pizzas.price) 
-           FROM order_details 
-           JOIN pizzas ON order_details.pizza_id = pizzas.pizza_id)) * 100, 2) AS percentage_revenue_contribution
-FROM 
-    pizza_types
-JOIN 
-    pizzas ON pizza_types.pizza_type_id = pizzas.pizza_type_id
-JOIN 
-    order_details ON order_details.pizza_id = pizzas.pizza_id
-GROUP BY 
-    pizza_types.category
-ORDER BY 
-    percentage_revenue_contribution DESC;
-
-
--- 2. Analyze the cumulative revenue generated over time.
-SELECT 
-    order_date,
-    ROUND(SUM(daily_revenue) OVER (ORDER BY order_date), 2) AS cumulative_revenue
-FROM (
-    SELECT 
-        orders.order_date,
-        SUM(order_details.quantity * pizzas.price) AS daily_revenue
-    FROM 
-        order_details
-    JOIN 
-        pizzas ON order_details.pizza_id = pizzas.pizza_id
-    JOIN 
-        orders ON order_details.order_id = orders.order_id
-    GROUP BY 
-        orders.order_date
-) AS daily_sales;
-
-
--- 3. Determine the top 3 most ordered pizza types based on revenue for each pizza category.
-WITH ranked_pizzas AS (
-    SELECT 
-        pizza_types.category,
-        pizza_types.name,
-        SUM(order_details.quantity * pizzas.price) AS revenue,
-        RANK() OVER (PARTITION BY pizza_types.category ORDER BY SUM(order_details.quantity * pizzas.price) DESC) AS revenue_rank
-    FROM 
-        pizza_types
-    JOIN 
-        pizzas ON pizza_types.pizza_type_id = pizzas.pizza_type_id
-    JOIN 
-        order_details ON order_details.pizza_id = pizzas.pizza_id
-    GROUP BY 
-        pizza_types.category, 
-        pizza_types.name
-)
-SELECT 
-    category,
-    name,
-    ROUND(revenue, 2) AS revenue
-FROM 
-    ranked_pizzas
-WHERE 
-    revenue_rank <= 3;
+The outputs generated by these queries serve as the precise structural mapping for the upcoming interactive reporting layer:
+* **Time-Series Engine:** Hourly distribution models map directly onto Line charts to show staffing demand spikes.
+* **Financial Breakdown:** Categorical percentage contributions feed into Matrix layouts for instant executive margin analysis.
+* **Growth Tracking:** Rolling cumulative values map to area visualizations to track quarterly benchmark progress.
